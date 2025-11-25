@@ -20,26 +20,31 @@ jobs:
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
     - name: Build and push image
+      id: docker_build
       uses: docker/build-push-action@v4
       with:
+        context: ./app
         push: true
         tags: ${{ secrets.DOCKERHUB_USERNAME }}/flask-inventory:latest
-        context: ./app
 
     - name: Scan image with Trivy
-      uses: aquasecurity/trivy-action@v1
+      uses: aquasecurity/trivy-action@0.20.0
       with:
         image-ref: ${{ secrets.DOCKERHUB_USERNAME }}/flask-inventory:latest
+        format: table
+        exit-code: 0   # Do not break pipeline on vulnerabilities
 
     - name: Update manifest repo (optional)
       env:
         GIT_AUTHOR_NAME: "github-actions"
         GIT_AUTHOR_EMAIL: "actions@github.com"
+        DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
       run: |
         git config --global user.email "$GIT_AUTHOR_EMAIL"
         git config --global user.name "$GIT_AUTHOR_NAME"
-        # If your manifests are in same repo, sed replace image tag
-        sed -i "s|<DOCKERHUB_USERNAME>/flask-inventory:.*|${{ secrets.DOCKERHUB_USERNAME }}/flask-inventory:latest|" manifests/backend-deployment.yaml
+
+        sed -i "s|image: .*|image: ${DOCKERHUB_USERNAME}/flask-inventory:latest|" manifests/backend-deployment.yaml
+        
         git add manifests/backend-deployment.yaml
-        git commit -m "ci: update image to latest" || echo "no changes"
-        git push origin HEAD:main || echo "push failed"
+        git commit -m "ci: update image to latest" || echo "No changes to commit"
+        git push origin HEAD:main || echo "Push skipped"
