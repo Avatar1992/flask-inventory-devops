@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: inventory-backend
-        image: <DOCKERHUB_USERNAME>/flask-inventory:latest
+        image: avatar1992/flask-inventory:latest
         ports:
           - containerPort: 5000
         env:
