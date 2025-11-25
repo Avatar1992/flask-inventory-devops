@@ -1,0 +1,6 @@
+resources:
+- namespace.yaml
+- mysql-deployment.yaml
+- backend-deployment.yaml
+- ingress.yaml
+

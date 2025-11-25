@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory-backend
+  namespace: inventory
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: inventory-backend }
+  template:
+    metadata:
+      labels: { app: inventory-backend }
+    spec:
+      containers:
+      - name: inventory-backend
+        image: <DOCKERHUB_USERNAME>/flask-inventory:latest
+        ports:
+          - containerPort: 5000
+        env:
+          - name: MYSQL_HOST
+            value: mysql
+          - name: MYSQL_USER
+            value: root
+          - name: MYSQL_PASSWORD
+            value: password
+          - name: MYSQL_DATABASE
+            value: inventorydb
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory-backend
+  namespace: inventory
+spec:
+  selector: { app: inventory-backend }
+  ports:
+    - port: 5000
+
